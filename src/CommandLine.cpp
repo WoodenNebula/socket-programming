@@ -81,6 +81,12 @@ SAppCmdLineArgs SAppCmdLineArgs::ParseArgs(int argc, char** argv)
         PrintUsageAndExit();
     }
 
+    if (!bIsClient && !bIsServer)
+    {
+        LOG(LogCmdLineParser, Warning, "Command Line Parsing: No cmd line arguements passed, initing as a client to connect on the default server address: {}", Sockets::SAddress::DefaultServerAddress());
+        return { true, Sockets::SAddress::DefaultServerAddress() };
+    }
+
     if (bIsClient && !serverAddress)
     {
         LOG(LogCmdLineParser, Warning, "Address Parsing: No address supplied as client, using default address: {}", Sockets::SAddress::DefaultServerAddress());
