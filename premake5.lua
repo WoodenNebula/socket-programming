@@ -1,4 +1,4 @@
-workspace "TCP-Messaging"
+workspace "SocketProgramming"
     configurations { "Debug", "Release" }
     architecture "x64"
 
@@ -18,7 +18,7 @@ workspace "TCP-Messaging"
     filter{}
 
     filter "system:windows"
-        startproject "TCP-Messaging"
+        startproject "SocketProgramming"
         defines { "WINDOWS=1" }
         systemversion "latest"
 
@@ -35,7 +35,7 @@ workspace "TCP-Messaging"
     outputdir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 
-project "TCP-Messaging"
+project "SocketProgramming"
     language "C++"
     cppdialect "C++20"
     kind "ConsoleApp"
@@ -56,7 +56,7 @@ project "TCP-Messaging"
 
     filter "system:windows"
         systemversion "latest"
-        targetname("TCP-Messaging")
+        targetname("SocketProgramming")
         links
         {
             "Ws2_32",
@@ -64,7 +64,7 @@ project "TCP-Messaging"
     filter {}
 
     filter "system:linux"
-        targetname("TCP-Messaging.out")
+        targetname("SocketProgramming.out")
     filter {}
 
 newaction {
