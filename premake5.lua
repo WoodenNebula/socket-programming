@@ -59,6 +59,7 @@ project "TCP-Messaging"
         targetname("TCP-Messaging")
         links
         {
+            "Ws2_32",
         }
     filter {}
 
