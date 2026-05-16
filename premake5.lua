@@ -54,21 +54,11 @@ project "TCP-Messaging"
         ["Headers"] = { "**.hpp", "**.h" },
     }
 
-    links
-    {
-        -- "Engine",
-        -- "glad",
-        -- "glfw"
-    }
-
     filter "system:windows"
-        kind "WindowedApp"
         systemversion "latest"
         targetname("TCP-Messaging")
         links
         {
-            "user32",
-            "shell32",
         }
     filter {}
 
@@ -76,23 +66,38 @@ project "TCP-Messaging"
         targetname("TCP-Messaging.out")
     filter {}
 
-
 newaction {
     trigger = "clean",
-    description = "Remove all binaries and intermediate binaries, and vs files.",
+    description = "Remove all binaries, intermediate files, and VS files.",
     execute = function()
         print("==== Cleaning Up ====")
-        -- os.chdir("TCP-Messaging")
 
-        os.rmdir("build")
-        os.rmdir("./.vs")
+        local function rmdir_safe(path)
+            if os.isdir(path) then
+                os.rmdir(path)
+                print("Removed directory: " .. path)
+            end
+        end
 
-        os.remove("**.sln")
-        os.remove("**.slnx")
-        os.remove("**.vcxproj")
-        os.remove("**.vcxproj.**")
-        os.remove("**Makefile")
-        os.remove("**.make")
-        print("==== Success ====\n")
+        local function remove_pattern(pattern)
+            local files = os.matchfiles(pattern)
+            for _, file in ipairs(files) do
+                os.remove(file)
+                print("Removed file: " .. file)
+            end
+        end
+
+        rmdir_safe("build")
+        rmdir_safe(".vs")
+
+        remove_pattern("*.sln")
+        remove_pattern("*.slnx")
+        remove_pattern("*.vcxproj")
+        remove_pattern("*.vcxproj.filters")
+        remove_pattern("*.vcxproj.user")
+        remove_pattern("Makefile")
+        remove_pattern("*.make")
+
+        print("==== Success ====")
     end
 }

@@ -1,10 +1,6 @@
-#if WINDOWS
-#include "WinMain.hpp"
-#else
-#include "UnixMain.hpp"
-#endif
+#include <iostream>
 
-int Main(int argc, char** argv)
+int main(int argc, char** argv)
 {
     std::cout << "CUSTOM entry point\n";
 
