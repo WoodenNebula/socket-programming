@@ -19,6 +19,7 @@ namespace Engine
 enum class ELogLevel
 {
     Trace = 0,
+    Success,
     Info,
     Warn,
     Error,
@@ -53,9 +54,10 @@ inline static void LogWrite(const LogCategory& category, ELogLevel level, std::s
 
     switch (level)
     {
-    case ELogLevel::Trace:  logHeader << COLOR_GRAY << "[TRACE] - "; break;
-    case ELogLevel::Info:   logHeader << COLOR_WHITE << "[INFO] - "; break;
-    case ELogLevel::Warn:   logHeader << COLOR_YELLOW << "[WARNING] - "; break;
+    case ELogLevel::Trace:      logHeader << COLOR_GRAY << "[TRACE] - ";        break;
+    case ELogLevel::Success:    logHeader << COLOR_GREEN << "[SUCCESS] - ";     break;
+    case ELogLevel::Info:       logHeader << COLOR_WHITE << "[INFO] - ";        break;
+    case ELogLevel::Warn:       logHeader << COLOR_YELLOW << "[WARNING] - ";    break;
 
     case ELogLevel::Error:
         logHeader << location.file_name() << "\n"
@@ -105,6 +107,7 @@ inline Engine::LogCategory Log##CategoryName{#CategoryName, Level };
 }; // namespace Engine
 
 inline constexpr Engine::ELogLevel Trace = Engine::ELogLevel::Trace;
+inline constexpr Engine::ELogLevel Success = Engine::ELogLevel::Success;
 inline constexpr Engine::ELogLevel Info = Engine::ELogLevel::Info;
 inline constexpr Engine::ELogLevel Warning = Engine::ELogLevel::Warn;
 inline constexpr Engine::ELogLevel Error = Engine::ELogLevel::Error;

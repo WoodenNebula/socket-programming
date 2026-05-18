@@ -2,6 +2,12 @@
 
 #include "Logger/Logger.h"
 
+#if WINDOWS
+#include "WinSockets.h"
+#else
+#include "LinuxSockets.h"
+#endif
+
 DECLARE_LOG_CATEGORY(Sockets);
 
 namespace Sockets
@@ -89,3 +95,32 @@ SAddress SAddress::FromString(std::string_view Address)
     return sockAddress;
 }
 }   // namespace Sockets
+
+
+namespace Sockets
+{
+CSocket::CSocket()
+{
+#if WINDOWS
+    m_SockImpl = std::make_unique <CWinSockets>();
+#else
+    m_SockImpl = std::make_unique <CLinuxSockets>();
+#endif
+
+}
+
+CSocket::~CSocket()
+{
+    Shutdown();
+}
+
+bool CSocket::Init()
+{
+    return m_SockImpl->Init();
+}
+void CSocket::Shutdown()
+{
+    m_SockImpl->Shutdown();
+}
+
+}
