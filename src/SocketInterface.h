@@ -10,7 +10,7 @@ class ISocket
 public:
     virtual ~ISocket() = default;
 
-    virtual bool Init() = 0;
+    virtual bool Init(const SAddress& Address) = 0;
     virtual void Shutdown() = 0;
 };
 

@@ -114,9 +114,9 @@ CSocket::~CSocket()
     Shutdown();
 }
 
-bool CSocket::Init()
+bool CSocket::Init(const SAddress& Address)
 {
-    return m_SockImpl->Init();
+    return m_SockImpl->Init(Address);
 }
 void CSocket::Shutdown()
 {

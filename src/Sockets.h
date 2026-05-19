@@ -56,6 +56,19 @@ public:
         return "127.0.0.1:27020";
     }
 
+    static inline std::string GetPortAsString(Port_t Port)
+    {
+        return std::to_string(Port);
+    }
+    static inline std::string GetAddressAsString(const IPv4_t& IP)
+    {
+        std::string ip{ "" };
+        for (const Octet_t& octet : IP)
+            ip += std::to_string(octet) + ".";
+        ip.pop_back();
+        return ip;
+    }
+
     static bool IsPortInRange(int Port);
     static bool IsOctetValid(int Octet, char Separator = '.');
 
@@ -71,7 +84,7 @@ public:
     CSocket();
     ~CSocket();
 
-    virtual bool Init();
+    virtual bool Init(const SAddress& Address);
     virtual void Shutdown();
 
 private:

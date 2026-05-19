@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 {
     Sockets::CSocketAPI::Init();
     // [X] Sockets::CSocket Socket;
-    // [.] Socket.Init(Address, Port);
+    // [X] Socket.Init(Address, Port);
     // [.] Socket.Bind();
     // [.] Socket.Listen();
     // [.] Socket.Accept(); Socket.Connect();
@@ -20,11 +20,12 @@ int main(int argc, char** argv)
     auto [bIsClient, sockAddress] = SAppCmdLineArgs::ParseArgs(argc, argv);
 
 
+
     if (bIsClient)
     {
         LOG(LogMain, Info, "[Init] - Starting as client with address : {}", sockAddress.ToString());
         Sockets::CSocket Socket;
-        Socket.Init();
+        Socket.Init(sockAddress);
         Socket.Shutdown();
 
         //ChatClient client;
@@ -36,6 +37,8 @@ int main(int argc, char** argv)
         //ChatServer server;
         //server.Run((uint16)nPort);
     }
+
+    Sockets::CSocketAPI::Shutdown();
 
     return 0;
 }
