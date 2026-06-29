@@ -12,6 +12,9 @@ public:
 
     virtual bool Init(const SAddress& Address) = 0;
     virtual void Shutdown() = 0;
+
+    virtual void Bind() = 0;
+    virtual void Listen() = 0;
 };
 
 }   // namespace Sockets

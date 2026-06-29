@@ -1,6 +1,6 @@
 #include "Logger/Logger.h"
 
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "SocketsAPI.h"
 #include "Sockets.h"
 
@@ -34,6 +34,11 @@ int main(int argc, char** argv)
     else
     {
         LOG(LogMain, Info, "[Init] - Starting as server in port : {}", sockAddress.Port);
+        Sockets::CSocket Socket;
+        Socket.Init(sockAddress);
+        Socket.Bind();
+        Socket.Listen();
+
         //ChatServer server;
         //server.Run((uint16)nPort);
     }

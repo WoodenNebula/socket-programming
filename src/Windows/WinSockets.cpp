@@ -55,10 +55,11 @@ bool CWinSockets::Init(const SAddress& Address)
     if (m_bIsInitialized)
         return true;
 
+    m_Address = Address;
     SNativeAddress hints;
 
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
@@ -76,10 +77,9 @@ bool CWinSockets::Init(const SAddress& Address)
         return false;
     }
 
-    SOCKET ConnectSocket = INVALID_SOCKET;
-    ConnectSocket = socket(m_NativeSocketAddr->ai_family, m_NativeSocketAddr->ai_socktype, m_NativeSocketAddr->ai_protocol);
+    m_NativeSocket = socket(m_NativeSocketAddr->ai_family, m_NativeSocketAddr->ai_socktype, m_NativeSocketAddr->ai_protocol);
 
-    if (ConnectSocket == INVALID_SOCKET)
+    if (m_NativeSocket == INVALID_SOCKET)
     {
         LOG(LogWinSockets, Error, "Error at socket(): {}", WSAGetLastError());
         freeaddrinfo(m_NativeSocketAddr);
@@ -92,12 +92,54 @@ bool CWinSockets::Init(const SAddress& Address)
     return m_bIsInitialized;
 }
 
+
+/// <summary>
+/// Start socket as a server socket to broadcast to a particular address
+/// </summary>
+void CWinSockets::Bind()
+{
+    if (!m_bIsInitialized)
+    {
+        LOG(LogWinSockets, Error, "Socket isn't initialized for binding");
+        //return false;
+    }
+
+    int iResult = bind(m_NativeSocket, m_NativeSocketAddr->ai_addr, (int)m_NativeSocketAddr->ai_addrlen);
+    if (iResult == SOCKET_ERROR)
+    {
+        LOG(LogWinSockets, Error, "Binding failed: {}", WSAGetLastError());
+        Shutdown();
+    }
+
+    LOG(LogWinSockets, Info, "Socket bound to address: {}", m_Address.ToString());
+    // native socket address not required after binding is done
+    freeaddrinfo(m_NativeSocketAddr);
+}
+
+void CWinSockets::Listen()
+{
+    if (!m_bIsInitialized)
+    {
+        LOG(LogWinSockets, Error, "Socket isn't initialized for listening");
+        //return false;
+    }
+
+    if (listen(m_NativeSocket, SOMAXCONN) == SOCKET_ERROR)
+    {
+        LOG(LogWinSockets, Error, "Listening failed: {}", WSAGetLastError());
+        Shutdown();
+    }
+
+    LOG(LogWinSockets, Info, "Socket Listening at address: {}", m_Address.ToString());
+}
+
 void CWinSockets::Shutdown()
 {
     if (!m_bIsInitialized)
         return;
 
     freeaddrinfo(m_NativeSocketAddr);
+    closesocket(m_NativeSocket);
 
     LOG(LogWinSockets, Success, "Shutting down socket");
     m_bIsInitialized = false;

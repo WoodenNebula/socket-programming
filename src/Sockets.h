@@ -86,6 +86,8 @@ public:
 
     virtual bool Init(const SAddress& Address);
     virtual void Shutdown();
+    virtual void Bind();
+    virtual void Listen();
 
 private:
     std::unique_ptr<ISocket> m_SockImpl;

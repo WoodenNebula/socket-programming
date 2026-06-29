@@ -3,9 +3,9 @@
 #include "Logger/Logger.h"
 
 #if WINDOWS
-#include "WinSockets.h"
+#include "Windows/WinSockets.h"
 #else
-#include "LinuxSockets.h"
+#include "Linux/LinuxSockets.h"
 #endif
 
 DECLARE_LOG_CATEGORY(Sockets);
@@ -121,6 +121,14 @@ bool CSocket::Init(const SAddress& Address)
 void CSocket::Shutdown()
 {
     m_SockImpl->Shutdown();
+}
+void CSocket::Bind()
+{
+    m_SockImpl->Bind();
+}
+void CSocket::Listen()
+{
+    m_SockImpl->Listen();
 }
 
 }
