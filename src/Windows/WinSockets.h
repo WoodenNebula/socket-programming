@@ -9,6 +9,7 @@ namespace Sockets
 {
 
 using SNativeAddress = addrinfo;
+using SNativeSocket = SOCKET;
 
 class CWinSockets : public ISocket
 {
@@ -21,14 +22,23 @@ public:
     ////////////////
     virtual bool Init(const SAddress& Address) override;
     virtual void Shutdown() override;
+
+    virtual void Send() override;
+    virtual void Close() override;
+
+    /* Server-side interface */
     virtual void Bind() override;
     virtual void Listen() override;
+    virtual void Accept() override;
+
+    /* Client-side interface */
+    virtual void Connect() override;
 
 private:
     bool m_bIsInitialized{ false };
     SAddress m_Address;
 
     SNativeAddress* m_NativeSocketAddr{ nullptr };
-    SOCKET m_NativeSocket{ INVALID_SOCKET };
+    SNativeSocket m_NativeSocket{ INVALID_SOCKET };
 };
 }   // namespace Sockets

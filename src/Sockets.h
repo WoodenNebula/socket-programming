@@ -86,8 +86,22 @@ public:
 
     virtual bool Init(const SAddress& Address);
     virtual void Shutdown();
+
+    virtual void Send();
+    virtual void Close();
+
+    /* Server-side interface */
     virtual void Bind();
     virtual void Listen();
+    /// <summary>
+    /// Accepts a single connection in a non-threaded fashion for simplicity right now 
+    /// </summary>
+    /// TODO: Update the paradigm to handle multiple connection OR make accepting be handled by another thread
+    virtual void Accept();
+
+    /* Client-side interface */
+    virtual void Connect();
+
 
 private:
     std::unique_ptr<ISocket> m_SockImpl;

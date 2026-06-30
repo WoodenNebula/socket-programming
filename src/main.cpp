@@ -26,7 +26,11 @@ int main(int argc, char** argv)
         LOG(LogMain, Info, "[Init] - Starting as client with address : {}", sockAddress.ToString());
         Sockets::CSocket Socket;
         Socket.Init(sockAddress);
-        Socket.Shutdown();
+        Socket.Connect();
+        do
+        {
+
+        } while (true);
 
         //ChatClient client;
         //client.Run(address);
@@ -38,7 +42,11 @@ int main(int argc, char** argv)
         Socket.Init(sockAddress);
         Socket.Bind();
         Socket.Listen();
+        Socket.Accept();
+        do
+        {
 
+        } while (true);
         //ChatServer server;
         //server.Run((uint16)nPort);
     }

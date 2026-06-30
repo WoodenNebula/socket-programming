@@ -118,10 +118,23 @@ bool CSocket::Init(const SAddress& Address)
 {
     return m_SockImpl->Init(Address);
 }
+
+void CSocket::Close()
+{
+    m_SockImpl->Close();
+}
+
 void CSocket::Shutdown()
 {
     m_SockImpl->Shutdown();
 }
+
+void CSocket::Send()
+{
+    m_SockImpl->Send();
+}
+
+/* Server Related methods */
 void CSocket::Bind()
 {
     m_SockImpl->Bind();
@@ -130,5 +143,14 @@ void CSocket::Listen()
 {
     m_SockImpl->Listen();
 }
+void CSocket::Accept()
+{
+    m_SockImpl->Accept();
+}
 
+/* Client Related methods */
+void CSocket::Connect()
+{
+    m_SockImpl->Connect();
+}
 }
