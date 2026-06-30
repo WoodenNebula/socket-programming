@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import os
-from os.path import isdir
 import sys
 import subprocess
 from pathlib import Path
+import time
 
-PROJECT_NAME = "TCP-Messaging"
+PROJECT_NAME = "SocketProgramming"
 CONFIG = "Debug"
 
 # Detect platform
@@ -21,19 +21,19 @@ def run_cmd(cmd, cwd=None):
 
 def config_project():
     premake = Path("vendor/premake/premake5.exe" if IS_WINDOWS else "vendor/premake/premake5")
-    
+
     if not premake.exists():
         print(f"Error: Premake not found at {premake}")
         sys.exit(1)
 
     run_cmd(f"{premake} clean")
     print(f"==== Generating ({CONFIG}) Build Files ====")
-    
+
     if IS_WINDOWS:
         run_cmd(f"{premake} vs2026")   # Use Visual Studio on Windows
     else:
         run_cmd(f"{premake} gmake")   # Use GNU Make on Linux
-    
+
     print("==== Build Files Generation Complete ====\n")
 
 def build_project():
@@ -60,15 +60,41 @@ def run_project():
     else:
         exe_name = f"{PROJECT_NAME}.out"
 
-    exe_path = f"build/bin/{PROJECT_NAME}/{exe_name}"
+    def find(name, path):
+        for root, dirs, files in os.walk(path):
+            if name in files:
+                return os.path.join(root, name)
 
+    exe_path = find(exe_name, str(Path("build") / "bin"))
     if not exe_path or not os.path.exists(exe_path):
         print(f"Executable {exe_path} not found")
         print("Project Not Compiled")
         print("==== ====")
         return
-    print (f"Running executable at {exe_path}")
-    run_cmd(exe_path)
+
+    print(f"Running executable at {exe_path}")
+
+    def launch_in_new_terminal(command, title):
+        # Launch each role in its own terminal window so they can run concurrently.
+        if IS_WINDOWS:
+            terminal_cmd = f'start "{title}" cmd /k "{command}"'
+        else:
+            terminal_cmd = f'x-terminal-emulator -T "{title}" -e {command}'
+
+        try:
+            subprocess.Popen(terminal_cmd, shell=True)
+        except Exception as e:
+            print(f"Failed to launch {title}: {e}")
+            sys.exit(1)
+
+    server_cmd = f'"{exe_path}" server'
+    client_cmd = f'"{exe_path}" client'
+
+    launch_in_new_terminal(server_cmd, f"{PROJECT_NAME} Server")
+    print("Server launched. Waiting 3 seconds before starting client...")
+    time.sleep(3)
+    launch_in_new_terminal(client_cmd, f"{PROJECT_NAME} Client")
+    print("Client launched.")
     print("========\n")
 
 def main():
