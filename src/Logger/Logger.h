@@ -60,16 +60,16 @@ inline static void LogWrite(const LogCategory& category, ELogLevel level, std::s
     case ELogLevel::Warn:       logHeader << COLOR_YELLOW << "[WARNING] - ";    break;
 
     case ELogLevel::Error:
-        logHeader << location.file_name() << "\n"
+        logHeader << COLOR_RED
+            << location.file_name() << "\n"
             << "\t" << "[" << location.line() << "] " << location.function_name() << "\n"
-            << COLOR_RED
             << "\t[ERROR] - ";
         break;
 
     case ELogLevel::Fatal:
-        logHeader << location.file_name() << "\n"
+        logHeader << COLOR_RED
+            << location.file_name() << "\n"
             << "\t" << "[" << location.line() << "] " << location.function_name() << "\n"
-            << COLOR_RED
             << "\t[FATAL] - ";
         break;
 
