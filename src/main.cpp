@@ -4,6 +4,9 @@
 #include "SocketsAPI.h"
 #include "Sockets.h"
 
+#include <chrono>
+#include <thread>
+
 DECLARE_LOG_CATEGORY(Main);
 
 int main(int argc, char** argv)
@@ -20,20 +23,41 @@ int main(int argc, char** argv)
     auto [bIsClient, sockAddress] = SAppCmdLineArgs::ParseArgs(argc, argv);
 
 
-
     if (bIsClient)
     {
         LOG(LogMain, Info, "[Init] - Starting as client with address : {}", sockAddress.ToString());
+
         Sockets::CSocket Socket;
         Socket.Init(sockAddress);
         Socket.Connect();
-        do
+
+        std::string str = "HELLOW EVERYNEON!";
+        Sockets::SSocketPayload Payload(str);
+
+        Socket.Send(Payload);
+
+        using namespace std::chrono_literals;
+
+        int i = 1;
+
+        while (1)
         {
+            if (i < 5)
+            {
+                std::this_thread::sleep_for(2s);
 
-        } while (true);
+                str = std::format("{} Hello again!", i);
 
-        //ChatClient client;
-        //client.Run(address);
+                Payload = Sockets::SSocketPayload(str);
+                Socket.Send(Payload);
+                i++;
+            }
+            else break;
+        }
+
+
+    //ChatClient client;
+    //client.Run(address);
     }
     else
     {
@@ -43,10 +67,8 @@ int main(int argc, char** argv)
         Socket.Bind();
         Socket.Listen();
         Socket.Accept();
-        do
-        {
-
-        } while (true);
+        Sockets::SSocketPayload Payload;
+        Socket.Receive(Payload);
         //ChatServer server;
         //server.Run((uint16)nPort);
     }

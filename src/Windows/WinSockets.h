@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SocketInterface.h"
+#define NOMINMAX
 #include <WinSock2.h>
 
 struct addrinfo;
@@ -23,7 +24,6 @@ public:
     virtual bool Init(const SAddress& Address) override;
     virtual void Shutdown() override;
 
-    virtual void Send() override;
     virtual void Close() override;
 
     /* Server-side interface */
@@ -34,11 +34,16 @@ public:
     /* Client-side interface */
     virtual void Connect() override;
 
+    /* Comms */
+    virtual bool Send(const SSocketPayload& Payload) override;
+    virtual bool Receive(SSocketPayload& Payload) override;
+
 private:
     bool m_bIsInitialized{ false };
     SAddress m_Address;
 
     SNativeAddress* m_NativeSocketAddr{ nullptr };
     SNativeSocket m_NativeSocket{ INVALID_SOCKET };
+    SNativeSocket m_NativeSocket_Client{ INVALID_SOCKET };
 };
 }   // namespace Sockets

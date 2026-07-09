@@ -17,7 +17,7 @@ namespace Sockets
         if (!condition) \
         { \
             LOG(LogWinSockets, Error, "Socket isn't initialized for {}", context); \
-            return; \
+            exit(1); \
         }\
     } while(0)
 
@@ -140,11 +140,9 @@ void CWinSockets::Accept()
 {
     ENSURE_INITIALIZED(m_bIsInitialized, "Connecting");
 
-    SNativeSocket ClientSocket = INVALID_SOCKET;
+    m_NativeSocket_Client = accept(m_NativeSocket, nullptr, nullptr);
 
-    ClientSocket = accept(m_NativeSocket, nullptr, nullptr);
-
-    if (ClientSocket == INVALID_SOCKET)
+    if (m_NativeSocket_Client == INVALID_SOCKET)
     {
         LOG(LogWinSockets, Error, "Accept failed: {}", WSAGetLastError());
         Shutdown();
@@ -178,9 +176,55 @@ void CWinSockets::Connect()
     LOG(LogWinSockets, Success, "Socket Connected to address: {}", m_Address.ToString());
 }
 
-void CWinSockets::Send()
+bool CWinSockets::Send(const SSocketPayload& Payload)
 {
-    LOG(LogWinSockets, Success, "Sent {} bytes of data to address: {}", 69, m_Address.ToString());
+    ENSURE_INITIALIZED(m_bIsInitialized, "Sending");
+
+    if (!Payload.Validate())
+        return false;
+
+
+    int iResult;
+
+    // Send an initial buffer
+    iResult = send(m_NativeSocket, Payload.Buffer.data(), static_cast<int>(Payload.GetLength()), 0);
+    if (iResult == SOCKET_ERROR)
+    {
+        LOG(LogWinSockets, Error, "Sending failed: {}", WSAGetLastError());
+
+        Shutdown();
+        return false;
+    }
+
+    LOG(LogWinSockets, Success, "Sent {} to address: {}", Payload.ToString(), m_Address.ToString());
+    /// Can shutdown after the data is sent. Do we use and throw sockets?
+    return true;
+}
+
+
+bool CWinSockets::Receive(SSocketPayload& Payload)
+{
+    ENSURE_INITIALIZED(m_bIsInitialized, "Receiving");
+
+    if (!Payload.Validate())
+        return false;
+
+    int iResult;
+    // Receive data until the server closes the connection
+    do
+    {
+        iResult = recv(m_NativeSocket_Client, Payload.Buffer.data(), SSocketPayload::MAX_LENGTH, 0);
+        if (iResult > 0)
+            LOG(LogWinSockets, Success, "Received {} bytes: {}", iResult, Payload.ToString());
+        else if (iResult == 0)
+            LOG(LogWinSockets, Warning, "Connection Closed");
+        else
+            LOG(LogWinSockets, Error, "Receiving failed: iRes = {}, err = {}", iResult, WSAGetLastError());
+    } while (iResult > 0);
+
+    closesocket(m_NativeSocket_Client);
+    return true;
+    /// Can shutdown after the data is received. Do we use and throw sockets?
 }
 
 void CWinSockets::Close()

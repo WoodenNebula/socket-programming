@@ -2,8 +2,11 @@
 
 #include "Sockets.h"
 
+
 namespace Sockets
 {
+struct SAddress;
+struct SSocketPayload;
 
 class ISocket
 {
@@ -13,7 +16,6 @@ public:
     virtual bool Init(const SAddress& Address) = 0;
     virtual void Shutdown() = 0;
 
-    virtual void Send() = 0;
     virtual void Close() = 0;
 
     /* Server-side interface */
@@ -23,6 +25,10 @@ public:
 
     /* Client-side interface */
     virtual void Connect() = 0;
+
+    /* Comms */
+    virtual bool Send(const SSocketPayload& Payload) = 0;
+    virtual bool Receive(SSocketPayload& Payload) = 0;
 };
 
 }   // namespace Sockets

@@ -8,6 +8,8 @@
 #include "Linux/LinuxSockets.h"
 #endif
 
+#include <algorithm>
+
 DECLARE_LOG_CATEGORY(Sockets);
 
 namespace Sockets
@@ -99,6 +101,39 @@ SAddress SAddress::FromString(std::string_view Address)
 
 namespace Sockets
 {
+
+SSocketPayload::SSocketPayload() : Buffer{}
+{
+
+}
+
+SSocketPayload::SSocketPayload(std::string_view StringData) : Buffer{}
+{
+    std::copy_n(StringData.data(), std::min(StringData.size(), MAX_LENGTH), Buffer.data());
+}
+
+bool SSocketPayload::Validate() const
+{
+    bool bIsValid = (!Buffer.empty() && GetLength() >= 0 && GetLength() <= SSocketPayload::MAX_LENGTH);
+    if (bIsValid)
+        LOG(LogSockets, Trace, "Payload is valid: ", ToString());
+    else
+        LOG(LogSockets, Error, "Invalid Payload: ", ToString());
+
+    return bIsValid;
+}
+
+std::string SSocketPayload::ToString() const
+{
+    return std::format("Len: {}, data: {}", GetLength(), std::string_view(Buffer.data(), Buffer.size()));
+}
+
+}   // namespace Sockets
+
+
+
+namespace Sockets
+{
 CSocket::CSocket()
 {
 #if WINDOWS
@@ -129,11 +164,14 @@ void CSocket::Shutdown()
     m_SockImpl->Shutdown();
 }
 
-void CSocket::Send()
+bool CSocket::Send(const SSocketPayload& Payload)
 {
-    m_SockImpl->Send();
+    return m_SockImpl->Send(Payload);
 }
-
+bool CSocket::Receive(SSocketPayload& Payload)
+{
+    return m_SockImpl->Receive(Payload);
+}
 /* Server Related methods */
 void CSocket::Bind()
 {

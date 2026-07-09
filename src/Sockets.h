@@ -76,6 +76,26 @@ public:
 };
 
 
+struct SSocketPayload
+{
+public:
+    static constexpr size_t MAX_LENGTH = 256;
+    std::array<char, MAX_LENGTH> Buffer;
+
+public:
+    SSocketPayload();
+    SSocketPayload(std::string_view StringData);
+
+    inline size_t GetLength() const
+    {
+        return Buffer.size();
+    }
+
+    bool Validate() const;
+    std::string ToString() const;
+};
+
+
 class ISocket;
 
 class CSocket
@@ -87,7 +107,6 @@ public:
     virtual bool Init(const SAddress& Address);
     virtual void Shutdown();
 
-    virtual void Send();
     virtual void Close();
 
     /* Server-side interface */
@@ -102,6 +121,11 @@ public:
     /* Client-side interface */
     virtual void Connect();
 
+    /* Comms */
+    // Blocking action for now, will keep on sending/receiving until the connection is closed
+    virtual bool Send(const SSocketPayload& Payload);
+    // Blocking action for now, will keep on sending/receiving until the connection is closed
+    virtual bool Receive(SSocketPayload& Payload);
 
 private:
     std::unique_ptr<ISocket> m_SockImpl;
