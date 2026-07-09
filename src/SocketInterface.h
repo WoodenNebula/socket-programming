@@ -21,14 +21,14 @@ public:
     /* Server-side interface */
     virtual void Bind() = 0;
     virtual void Listen() = 0;
-    virtual void Accept() = 0;
+    virtual std::unique_ptr<ISocket> Accept() = 0;
 
     /* Client-side interface */
     virtual void Connect() = 0;
 
     /* Comms */
     virtual bool Send(const SSocketPayload& Payload) = 0;
-    virtual bool Receive(SSocketPayload& Payload) = 0;
+    virtual ERecieveResponse Receive(SSocketPayload& Payload) = 0;
 };
 
 }   // namespace Sockets

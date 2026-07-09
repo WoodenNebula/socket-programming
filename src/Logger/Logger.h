@@ -28,7 +28,7 @@ enum class ELogLevel
 
 
 #ifdef DEBUG
-#define ENGINE_LOG_LEVEL Engine::ELogLevel::Trace
+#define ENGINE_LOG_LEVEL Engine::ELogLevel::Warn
 #else
 #define ENGINE_LOG_LEVEL Engine::ELogLevel::Info
 #endif
@@ -112,5 +112,11 @@ inline constexpr Engine::ELogLevel Info = Engine::ELogLevel::Info;
 inline constexpr Engine::ELogLevel Warning = Engine::ELogLevel::Warn;
 inline constexpr Engine::ELogLevel Error = Engine::ELogLevel::Error;
 inline constexpr Engine::ELogLevel Fatal = Engine::ELogLevel::Fatal;
+
+template <typename... Args>
+void Print(std::format_string<Args...> fmt, Args&&... args)
+{
+    std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
+}
 
 DECLARE_LOG_CATEGORY(Any);

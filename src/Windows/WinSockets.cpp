@@ -113,7 +113,7 @@ void CWinSockets::Bind()
     if (iResult == SOCKET_ERROR)
     {
         LOG(LogWinSockets, Error, "Binding failed: {}", WSAGetLastError());
-        Shutdown();
+        Close();
         return;
     }
 
@@ -129,27 +129,34 @@ void CWinSockets::Listen()
     if (listen(m_NativeSocket, SOMAXCONN) == SOCKET_ERROR)
     {
         LOG(LogWinSockets, Error, "Listening failed: {}", WSAGetLastError());
-        Shutdown();
+        Close();
         return;
     }
 
     LOG(LogWinSockets, Success, "Socket Listening at address: {}", m_Address.ToString());
 }
 
-void CWinSockets::Accept()
+std::unique_ptr<ISocket> CWinSockets::Accept()
 {
     ENSURE_INITIALIZED(m_bIsInitialized, "Connecting");
 
-    m_NativeSocket_Client = accept(m_NativeSocket, nullptr, nullptr);
+    SNativeSocket client = accept(m_NativeSocket, nullptr, nullptr);
 
-    if (m_NativeSocket_Client == INVALID_SOCKET)
+    if (client == INVALID_SOCKET)
     {
         LOG(LogWinSockets, Error, "Accept failed: {}", WSAGetLastError());
-        Shutdown();
-        return;
+        Close();
+        return nullptr;
     }
 
+    auto ClientSocket = std::make_unique<CWinSockets>();
+
+    ClientSocket->m_bIsInitialized = true;
+    ClientSocket->m_NativeSocket = client;
+
     LOG(LogWinSockets, Success, "Socket accepted at address: {}", m_Address.ToString());
+
+    return ClientSocket;
 }
 
 void CWinSockets::Connect()
@@ -164,7 +171,7 @@ void CWinSockets::Connect()
         // if the connect call failed
         // But for now, we just free the resources
         // returned by getaddrinfo i.e. m_NativeSocketAddr
-        Shutdown();
+        Close();
         return;
     }
 
@@ -186,65 +193,65 @@ bool CWinSockets::Send(const SSocketPayload& Payload)
 
     int iResult;
 
-    // Send an initial buffer
+    // Send a buffer
     iResult = send(m_NativeSocket, Payload.Buffer.data(), static_cast<int>(Payload.GetLength()), 0);
     if (iResult == SOCKET_ERROR)
     {
         LOG(LogWinSockets, Error, "Sending failed: {}", WSAGetLastError());
-
-        Shutdown();
+        Close();
         return false;
     }
 
-    LOG(LogWinSockets, Success, "Sent {} to address: {}", Payload.ToString(), m_Address.ToString());
-    /// Can shutdown after the data is sent. Do we use and throw sockets?
+    LOG(LogWinSockets, Success, "Sent {} to address: `{}`", Payload.ToString(), m_Address.ToString());
     return true;
 }
 
 
-bool CWinSockets::Receive(SSocketPayload& Payload)
+ERecieveResponse CWinSockets::Receive(SSocketPayload& Payload)
 {
     ENSURE_INITIALIZED(m_bIsInitialized, "Receiving");
 
     if (!Payload.Validate())
-        return false;
+        return ERecieveResponse::Err;
 
-    int iResult;
-    // Receive data until the server closes the connection
-    do
+    int iResult = recv(m_NativeSocket, Payload.Buffer.data(), SSocketPayload::MAX_LENGTH, 0);
+    if (iResult > 0)
     {
-        iResult = recv(m_NativeSocket_Client, Payload.Buffer.data(), SSocketPayload::MAX_LENGTH, 0);
-        if (iResult > 0)
-            LOG(LogWinSockets, Success, "Received {} bytes: {}", iResult, Payload.ToString());
-        else if (iResult == 0)
-            LOG(LogWinSockets, Warning, "Connection Closed");
-        else
-            LOG(LogWinSockets, Error, "Receiving failed: iRes = {}, err = {}", iResult, WSAGetLastError());
-    } while (iResult > 0);
+        LOG(LogWinSockets, Success, "Received {} bytes: `{}`", iResult, Payload.ToString());
+        return ERecieveResponse::Ok;
+    }
 
-    closesocket(m_NativeSocket_Client);
-    return true;
+    else if (iResult == 0)
+    {
+        LOG(LogWinSockets, Warning, "Received FIN signal aka to close send");
+        return ERecieveResponse::Close;
+    }
+    else
+    {
+        LOG(LogWinSockets, Error, "Receiving failed: iRes = {}, err = {}", iResult, WSAGetLastError());
+        Close();
+        return ERecieveResponse::Err;
+    }
+
     /// Can shutdown after the data is received. Do we use and throw sockets?
+}
+
+void CWinSockets::Shutdown()
+{
+    //ENSURE_INITIALIZED(m_bIsInitialized, "Shutdown");
+
+    shutdown(m_NativeSocket, SD_SEND);
+    LOG(LogWinSockets, Success, "Shutting down socket");
 }
 
 void CWinSockets::Close()
 {
     ENSURE_INITIALIZED(m_bIsInitialized, "Closing");
+    freeaddrinfo(m_NativeSocketAddr);
 
     closesocket(m_NativeSocket);
-    LOG(LogWinSockets, Success, "Closing socket");
-}
-
-void CWinSockets::Shutdown()
-{
-    if (!m_bIsInitialized)
-        return;
-
-    freeaddrinfo(m_NativeSocketAddr);
-    Close();
-
     m_bIsInitialized = false;
-    LOG(LogWinSockets, Success, "Shutting down socket");
+    LOG(LogWinSockets, Success, "Closing socket");
 }
 
 }   // namespace Sockets

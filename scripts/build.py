@@ -92,7 +92,7 @@ def run_project():
 
     launch_in_new_terminal(server_cmd, f"{PROJECT_NAME} Server")
     print("Server launched. Waiting 3 seconds before starting client...")
-    time.sleep(3)
+    time.sleep(1)
     launch_in_new_terminal(client_cmd, f"{PROJECT_NAME} Client")
     print("Client launched.")
     print("========\n")

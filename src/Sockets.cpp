@@ -18,13 +18,14 @@ bool SAddress::IsValid() const
 {
     bool bIsValid = true;
 
-    Octet_t last = IPv4.at(0);
-    for (size_t i = 1; i < IPv4.size(); i++)
+    for (const auto& octet : IPv4)
     {
-        bIsValid = bIsValid && (last != IPv4.at(i));
-        last = IPv4.at(i);
+        if (bIsValid && IsOctetValid(octet))
+            continue;
+        else return false;
     }
-    return bIsValid;
+
+    return IsPortInRange(Port);
 }
 
 std::string SAddress::ToString() const
@@ -102,12 +103,12 @@ SAddress SAddress::FromString(std::string_view Address)
 namespace Sockets
 {
 
-SSocketPayload::SSocketPayload() : Buffer{}
+SSocketPayload::SSocketPayload() : Buffer{ 0 }
 {
 
 }
 
-SSocketPayload::SSocketPayload(std::string_view StringData) : Buffer{}
+SSocketPayload::SSocketPayload(std::string_view StringData) : Buffer{ 0 }
 {
     std::copy_n(StringData.data(), std::min(StringData.size(), MAX_LENGTH), Buffer.data());
 }
@@ -116,7 +117,7 @@ bool SSocketPayload::Validate() const
 {
     bool bIsValid = (!Buffer.empty() && GetLength() >= 0 && GetLength() <= SSocketPayload::MAX_LENGTH);
     if (bIsValid)
-        LOG(LogSockets, Trace, "Payload is valid: ", ToString());
+        LOG(LogSockets, Trace, "Payload of len {} is valid: ", GetLength(), ToString());
     else
         LOG(LogSockets, Error, "Invalid Payload: ", ToString());
 
@@ -128,12 +129,17 @@ std::string SSocketPayload::ToString() const
     return std::format("Len: {}, data: {}", GetLength(), std::string_view(Buffer.data(), Buffer.size()));
 }
 
+std::string SSocketPayload::BufferAsString() const
+{
+    return std::string(Buffer.data(), Buffer.size());
+}
 }   // namespace Sockets
 
 
 
 namespace Sockets
 {
+
 CSocket::CSocket()
 {
 #if WINDOWS
@@ -145,9 +151,7 @@ CSocket::CSocket()
 }
 
 CSocket::~CSocket()
-{
-    Shutdown();
-}
+{}
 
 bool CSocket::Init(const SAddress& Address)
 {
@@ -168,7 +172,7 @@ bool CSocket::Send(const SSocketPayload& Payload)
 {
     return m_SockImpl->Send(Payload);
 }
-bool CSocket::Receive(SSocketPayload& Payload)
+ERecieveResponse CSocket::Receive(SSocketPayload& Payload)
 {
     return m_SockImpl->Receive(Payload);
 }
@@ -181,9 +185,15 @@ void CSocket::Listen()
 {
     m_SockImpl->Listen();
 }
-void CSocket::Accept()
+std::unique_ptr<CSocket> CSocket::Accept()
 {
-    m_SockImpl->Accept();
+    auto clientImpl = m_SockImpl->Accept();
+    if (!clientImpl)
+        return nullptr;
+
+    auto clientSocket = std::make_unique<CSocket>();
+    clientSocket->m_SockImpl = std::move(clientImpl);
+    return clientSocket;
 }
 
 /* Client Related methods */

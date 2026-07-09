@@ -93,8 +93,16 @@ public:
 
     bool Validate() const;
     std::string ToString() const;
+    std::string BufferAsString() const;
 };
 
+
+enum class ERecieveResponse
+{
+    Err = 0,
+    Ok,
+    Close
+};
 
 class ISocket;
 
@@ -116,7 +124,7 @@ public:
     /// Accepts a single connection in a non-threaded fashion for simplicity right now 
     /// </summary>
     /// TODO: Update the paradigm to handle multiple connection OR make accepting be handled by another thread
-    virtual void Accept();
+    [[nodiscard("Client Socket ignored")]] virtual std::unique_ptr<CSocket> Accept();
 
     /* Client-side interface */
     virtual void Connect();
@@ -125,7 +133,7 @@ public:
     // Blocking action for now, will keep on sending/receiving until the connection is closed
     virtual bool Send(const SSocketPayload& Payload);
     // Blocking action for now, will keep on sending/receiving until the connection is closed
-    virtual bool Receive(SSocketPayload& Payload);
+    virtual ERecieveResponse Receive(SSocketPayload& Payload);
 
 private:
     std::unique_ptr<ISocket> m_SockImpl;

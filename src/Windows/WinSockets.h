@@ -29,14 +29,14 @@ public:
     /* Server-side interface */
     virtual void Bind() override;
     virtual void Listen() override;
-    virtual void Accept() override;
+    virtual std::unique_ptr<ISocket> Accept() override;
 
     /* Client-side interface */
     virtual void Connect() override;
 
     /* Comms */
     virtual bool Send(const SSocketPayload& Payload) override;
-    virtual bool Receive(SSocketPayload& Payload) override;
+    virtual ERecieveResponse Receive(SSocketPayload& Payload) override;
 
 private:
     bool m_bIsInitialized{ false };
@@ -44,6 +44,5 @@ private:
 
     SNativeAddress* m_NativeSocketAddr{ nullptr };
     SNativeSocket m_NativeSocket{ INVALID_SOCKET };
-    SNativeSocket m_NativeSocket_Client{ INVALID_SOCKET };
 };
 }   // namespace Sockets
