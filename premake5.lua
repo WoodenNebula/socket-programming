@@ -18,7 +18,7 @@ workspace "SocketProgramming"
     filter{}
 
     filter "system:windows"
-        startproject "SocketProgramming"
+        startproject "ChatApp"
         defines { "WINDOWS=1" }
         systemversion "latest"
 
@@ -34,38 +34,9 @@ workspace "SocketProgramming"
 
     outputdir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
+    include "src/Networking/Networking.lua"
+    include "src/App/ChatApp.lua"
 
-project "SocketProgramming"
-    language "C++"
-    cppdialect "C++20"
-    kind "ConsoleApp"
-
-    targetdir("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
-    objdir("%{wks.location}/build/obj/" .. outputdir .. "/%{prj.name}")
-
-    includedirs {
-        "src",
-    }
-
-    files { "src/**.h", "src/**.cpp", "src/**.hpp" }
-
-    vpaths {
-        ["Sources"] = { "**.cpp", "**.c" },
-        ["Headers"] = { "**.hpp", "**.h" },
-    }
-
-    filter "system:windows"
-        systemversion "latest"
-        targetname("SocketProgramming")
-        links
-        {
-            "Ws2_32",
-        }
-    filter {}
-
-    filter "system:linux"
-        targetname("SocketProgramming.out")
-    filter {}
 
 newaction {
     trigger = "clean",
